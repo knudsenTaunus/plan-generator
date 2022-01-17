@@ -10,18 +10,17 @@ type Router struct {
 	PlanHandler http.Handler
 }
 
-func New(opts ...Option) *Router {
-	r := &Router{
-		Router: *mux.NewRouter(),
-	}
+func (rtr *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	rtr.Router.ServeHTTP(w, r)
+}
 
-	for _, opt := range opts {
-		opt(r)
+func New(ph http.Handler) *Router {
+	r := &Router{
+		PlanHandler: ph,
+		Router:      *mux.NewRouter(),
 	}
 
 	r.registerRoutes()
 
 	return r
 }
-
-type Option func(*Router)

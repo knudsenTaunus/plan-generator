@@ -7,11 +7,10 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"time"
 )
 
 type CalculationServiceInterface interface {
-	CalculatePlan(loanAmount int, nominalRate float32, duration int, startDate time.Time) (*model.Plan, error)
+	CalculatePlan(input *model.InputParameters) (*model.Plan, error)
 }
 
 type Plan struct {
@@ -22,7 +21,8 @@ type Plan struct {
 func (p *Plan) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodPost:
-
+		p.GeneratePlan(w, r)
+		return
 	default:
 		http.Error(w, "the requested method is not supported", http.StatusMethodNotAllowed)
 
@@ -44,16 +44,25 @@ func (p *Plan) GeneratePlan(w http.ResponseWriter, r *http.Request) {
 	var cr model.CalculateRequest
 	err = json.Unmarshal(body, &cr)
 	if err != nil {
+		log.Println(err)
 		http.Error(w, "failed to generate plan", http.StatusInternalServerError)
 	}
 
-	err = p.Validator.Struct(cr)
+	inputParameters, err := model.NewInputParametersFromRequest(cr)
 	if err != nil {
+		log.Println(err)
+		http.Error(w, "failed to generate plan", http.StatusInternalServerError)
+	}
+
+	err = p.Validator.Struct(inputParameters)
+	if err != nil {
+		log.Println(err)
 		return
 	}
 
-	plan, err := p.CalculationService.CalculatePlan(cr.LoanAmount, cr.NominalRate, cr.Duration, cr.StartDate)
+	plan, err := p.CalculationService.CalculatePlan(inputParameters)
 	if err != nil {
+		log.Println(err)
 		return
 	}
 
