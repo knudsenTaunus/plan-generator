@@ -20,17 +20,14 @@ func TestPlan_GeneratePlan(t *testing.T) {
 	err = json.Unmarshal(requestBody, &cr)
 	assert.NoError(t, err)
 
-	mockInputParameters, err := model.NewInputParametersFromRequest(cr)
-	assert.NoError(t, err)
-
 	rr := httptest.NewRecorder()
 
 	mockCalculationService := &mocks.CalculationServiceMock{}
+	testPlanHandler := New(mockCalculationService)
+	mockInputParameters, err := model.NewInputParametersFromRequest(cr, testPlanHandler.Validator)
+	assert.NoError(t, err)
 
 	mockCalculationService.Mock.On("CalculatePlan", mockInputParameters).Return(&Plan{}, nil)
-
-	testPlanHandler := New(mockCalculationService)
-
 	testPlanHandler.ServeHTTP(rr, req)
 	assert.Equal(t, http.StatusOK, rr.Code)
 

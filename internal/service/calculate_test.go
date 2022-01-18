@@ -50,7 +50,7 @@ func TestCalculateService_CalculatePlanNormalDate(t *testing.T) {
 	assert.NoError(t, err)
 	log.Println(plan.BorrowerPayments[0].Interest)
 	assert.Equal(t, "268.64", plan.BorrowerPayments[0].BorrowerPaymentAmount)
-	assert.Equal(t, 28, plan.BorrowerPayments[1].Date.Day())
+	assert.Equal(t, 15, plan.BorrowerPayments[1].Date.Day())
 
 	assert.Equal(t, calculateRequest.Duration, len(plan.BorrowerPayments))
 }
