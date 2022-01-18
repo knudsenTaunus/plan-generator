@@ -1,6 +1,8 @@
 package model
 
 import (
+	"github.com/go-playground/validator/v10"
+	"log"
 	"strconv"
 	"time"
 )
@@ -19,7 +21,7 @@ type InputParameters struct {
 	StartDate   time.Time `validate:"required"`
 }
 
-func NewInputParametersFromRequest(cr CalculateRequest) (*InputParameters, error) {
+func NewInputParametersFromRequest(cr CalculateRequest, validator *validator.Validate) (*InputParameters, error) {
 	loanAmount, err := strconv.ParseFloat(cr.LoanAmount, 32)
 	if err != nil {
 		return nil, err
@@ -29,12 +31,20 @@ func NewInputParametersFromRequest(cr CalculateRequest) (*InputParameters, error
 		return nil, err
 	}
 
-	return &InputParameters{
+	result := &InputParameters{
 		LoanAmount:  loanAmount,
 		NominalRate: nominalRate / 100,
 		Duration:    cr.Duration,
 		StartDate:   cr.StartDate,
-	}, nil
+	}
+
+	err = validator.Struct(result)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	return result, nil
 
 }
 

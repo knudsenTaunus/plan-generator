@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/knudsenTaunus/plan-generator/internal/model"
 	"math"
+	"time"
 )
 
 const (
@@ -46,12 +47,55 @@ func (c *CalculateService) CalculatePlan(input *model.InputParameters) (*model.P
 		}
 
 		duration--
-		date = date.AddDate(0, 1, 0)
+		date = calculateNextDate(date)
+		//date = time.Date(date.Year(), date.Month()+1, getLastDay(date.Month()+1, date.Year()), 0, 0, 0, 0, time.UTC)
 		remainingOutstandingPrincipal = newRemainingOutstandingPrincipal
 		plan.BorrowerPayments = append(plan.BorrowerPayments, pr)
 	}
 
 	return plan, nil
+}
+
+func calculateNextDate(date time.Time) time.Time {
+	if isLastDay(date.Day(), date.Month(), date.Year()) {
+		return time.Date(date.Year(), date.Month()+1, getLastDay(date.Month()+1, date.Year()), 0, 0, 0, 0, time.UTC)
+	}
+	return date.AddDate(0, 1, 0)
+
+}
+
+func isLastDay(day int, month time.Month, year int) bool {
+	if day == 31 {
+		return true
+	}
+
+	switch month {
+	case time.April, time.June, time.September, time.November:
+		return day == 30
+	case time.February:
+		if year%4 == 0 && (year%100 != 0 || year%400 == 0) { // leap year
+			return day == 29
+		}
+		return day == 28
+	default:
+		return day == 30
+	}
+}
+
+func getLastDay(month time.Month, year int) int {
+	switch month {
+	case time.February:
+		if year%4 == 0 && (year%100 != 0 || year%400 == 0) { // leap year
+			return 29
+		}
+		return 28
+	default:
+		return 30
+	}
+}
+
+func EndOfMonth(date time.Time) time.Time {
+	return date.AddDate(0, 1, -date.Day())
 }
 
 func (c *CalculateService) CalculateInterest(rate, outstandingInitialPrincipal float64) float64 {

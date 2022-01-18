@@ -48,16 +48,10 @@ func (p *Plan) GeneratePlan(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to generate plan", http.StatusInternalServerError)
 	}
 
-	inputParameters, err := model.NewInputParametersFromRequest(cr)
+	inputParameters, err := model.NewInputParametersFromRequest(cr, p.Validator)
 	if err != nil {
 		log.Println(err)
 		http.Error(w, "failed to generate plan", http.StatusInternalServerError)
-	}
-
-	err = p.Validator.Struct(inputParameters)
-	if err != nil {
-		log.Println(err)
-		return
 	}
 
 	plan, err := p.CalculationService.CalculatePlan(inputParameters)
