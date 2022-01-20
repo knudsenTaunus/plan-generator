@@ -1,7 +1,5 @@
 # plan-generator
 
-This is the solution to the coding task provided by Lendico.
-
 ## Install
 
 Extract the content of the zip file to a directory of your choice.
